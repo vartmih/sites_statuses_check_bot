@@ -1,8 +1,8 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def main_keyboard() -> InlineKeyboardBuilder:
+def main_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
 
     keyboard.add(InlineKeyboardButton(text="✅Начать отслеживание", callback_data="run"))
@@ -15,20 +15,20 @@ def main_keyboard() -> InlineKeyboardBuilder:
     keyboard.add(InlineKeyboardButton(text="ℹ️Статус", callback_data="status"))
 
     keyboard.adjust(1, 1, 1, 2, 2)
-    return keyboard
+    return keyboard.as_markup()
 
 
-def url_keyboard_factory(sites: list[str]) -> InlineKeyboardBuilder:
-    url_keyboard = InlineKeyboardBuilder()
+def url_keyboard_factory(sites: list[str]) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardBuilder()
     for site in sites:
-        url_keyboard.add(InlineKeyboardButton(text=f'👉🏼 {site}', callback_data=f'delete_site_{site}'))
+        keyboard.add(InlineKeyboardButton(text=f'👉🏼 {site}', callback_data=f'delete_site_{site}'))
 
-    url_keyboard.add(InlineKeyboardButton(text="❌Отмена", callback_data="menu"))
-    url_keyboard.adjust(1)
-    return url_keyboard
+    keyboard.add(InlineKeyboardButton(text="❌Отмена", callback_data="menu"))
+    keyboard.adjust(1)
+    return keyboard.as_markup()
 
 
-def cron_keyboard() -> InlineKeyboardBuilder:
+def cron_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     minutes = (1, 5, 10, 15, 30, 60)
 
@@ -39,4 +39,4 @@ def cron_keyboard() -> InlineKeyboardBuilder:
 
     keyboard.add(InlineKeyboardButton(text="❌Отмена", callback_data="menu"))
     keyboard.adjust(2)
-    return keyboard
+    return keyboard.as_markup()
