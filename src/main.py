@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 import requests
-from requests.exceptions import ConnectionError
+from requests.exceptions import RequestException
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
@@ -10,7 +10,7 @@ from aiogram.fsm.context import FSMContext
 from src.commands import set_commands
 from src.fsm import FSM
 from src.settings import settings
-from src.keyboards import main_keyboard, url_keyboard_factory
+from src.keyboards import main_keyboard, url_keyboard_factory, cron_keyboard
 from src.models import database, User, Site
 from src.utils import is_valid_url
 
@@ -45,7 +45,7 @@ async def start(message: types.Message):
         text="Вас приветствует бот-помощник, который будет уведомлять "
              "Вас о работоспособности одного или нескольких сайтов, которые Вы ему укажите."
              "\nЧего желаете?",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -53,7 +53,7 @@ async def start(message: types.Message):
 async def menu_command(message: types.Message):
     await message.answer(
         text="Вы в главном меню. Чего желаете?",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -61,7 +61,7 @@ async def menu_command(message: types.Message):
 async def menu_callback(callback: types.CallbackQuery):
     await callback.message.answer(
         text="Вы в главном меню. Чего желаете?",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -70,16 +70,11 @@ async def status(callback: types.CallbackQuery):
     user = User.get(User.username == callback.from_user.username)
     sites = Site.select().where(Site.user == callback.from_user.username)
 
-    word = 'сайт'
-    if 1 < len(sites) < 5:
-        word += 'a'
-    elif len(sites) >= 5 or len(sites) == 0:
-        word += 'ов'
-
     await callback.message.answer(
         text=f"Бот {'не ' if not user.tracking else ''}отслеживает работоспособность сайтов. "
-             f"\nВы указали {len(sites)} {word} из 10.",
-        reply_markup=main_keyboard.as_markup()
+             f"\nУказано сайтов: {len(sites)} из 10."
+             f"\nПериодичность опросов: раз в {user.period} минут{'у' if user.period == 1 else ''}.",
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -90,12 +85,12 @@ async def get_sites(callback: types.CallbackQuery):
     if not sites:
         await callback.message.answer(
             text="Список сайтов пуст.",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
     else:
         await callback.message.answer(
             "Список сайтов ({0} из 10):\n{1}".format(len(sites), '\n'.join(sites)),
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
 
 
@@ -105,7 +100,7 @@ async def clear_sites(callback: types.CallbackQuery):
 
     await callback.message.answer(
         text="Список сайтов очищен.",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -116,7 +111,7 @@ async def add_site(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.answer(
             text="Вы отслеживаете максимально допустимое количество сайтов (10). "
                  "Удалите что-нибудь, чтобы добавить новые.",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
     else:
         await callback.message.answer('Введите ссылку на сайт:')
@@ -130,7 +125,7 @@ async def delete_site_menu(callback: types.CallbackQuery):
     if not sites:
         await callback.message.answer(
             text="Список сайтов пуст.",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
     else:
         keyboard = url_keyboard_factory(sites)
@@ -149,7 +144,7 @@ async def delete_site(callback: types.CallbackQuery):
 
     await callback.message.answer(
         text=f"Сайт удален из отслеживаемых. Всего сайтов {len(sites)} из 10.",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -163,13 +158,13 @@ async def save_site(message: types.Message, state: FSMContext):
         await state.clear()
         await message.answer(
             text="Сайт добавлен.",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
     else:
         await message.answer(
             text="Ссылка некорректна. "
                  "Пожалуйста, введите корректную ссылку.",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
 
 
@@ -178,28 +173,35 @@ async def unknown(message: types.Message):
     await message.answer(
         text="Неизвестная команда. "
              "Выберите что-то из списка ниже.",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
     )
 
 
 @dp.callback_query(F.data == "run")
 async def run(callback: types.CallbackQuery):
     user = User.get(User.username == callback.from_user.username)
+    sites = Site.select().where(Site.user == callback.from_user.username)
 
     if user.tracking:
         await callback.message.answer(
             text="Бот уже отслеживает работоспособность сайтов. "
                  "\nЧто-нибудь еще?",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
-    else:
+    elif sites:
         user.update(tracking=True).execute()
         await callback.message.answer(
             text="Бот начал отслеживать работоспособность сайтов. "
                  "\nЧто-нибудь еще?",
-            reply_markup=main_keyboard.as_markup()
+            reply_markup=main_keyboard().as_markup()
         )
         await run_sites_tracking(callback.message)
+    else:
+        await callback.message.answer(
+            text="Список сайтов пуст. Добавьте хотя бы один сайт."
+                 "\nЧто-нибудь еще?",
+            reply_markup=main_keyboard().as_markup()
+        )
 
 
 @dp.callback_query(F.data == "stop")
@@ -210,7 +212,26 @@ async def stop(callback: types.CallbackQuery):
     await callback.message.answer(
         text="Бот закончил отслеживать работоспособность сайтов. "
              "\nЧто-нибудь еще?",
-        reply_markup=main_keyboard.as_markup()
+        reply_markup=main_keyboard().as_markup()
+    )
+
+
+@dp.callback_query(F.data == "period")
+async def period(callback: types.CallbackQuery):
+    await callback.message.answer(
+        text="Выберите период отслеживания:",
+        reply_markup=cron_keyboard().as_markup()
+    )
+
+
+@dp.callback_query(F.data.startswith("period_"))
+async def set_period(callback: types.CallbackQuery):
+    user = User.get(User.username == callback.from_user.username)
+    user.update(period=callback.data.split('_')[1]).execute()
+    await callback.message.answer(
+        text="Период отслеживания установлен. "
+             "\nЧто-нибудь еще?",
+        reply_markup=main_keyboard().as_markup()
     )
 
 
@@ -229,15 +250,17 @@ async def run_sites_tracking(message: types.Message | None = None, username: str
             try:
                 response = requests.get(url=site, timeout=5)
                 if response.status_code != 200:
-                    raise ConnectionError
-            except Exception as error:
+                    raise RequestException
+            except RequestException:
                 logging.info(f"Сайт {site} недоступен.")
-                logging.error(error)
                 if message:
                     await message.answer(text=f"Сайт {site} недоступен.")
                 else:
                     await bot.send_message(chat_id=user.chat_id, text=f"Сайт {site} недоступен.")
-        await asyncio.sleep(60)
+            except Exception as error:
+                logging.error(error)
+        print(user.period * 60)
+        await asyncio.sleep(user.period * 60)
 
 
 async def main():
