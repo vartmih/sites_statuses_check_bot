@@ -1,4 +1,4 @@
-from peewee import SqliteDatabase, Model, PrimaryKeyField, BooleanField, CharField, ForeignKeyField
+from peewee import SqliteDatabase, Model, PrimaryKeyField, BooleanField, CharField, ForeignKeyField, IntegerField
 
 database = SqliteDatabase('../db.sqlite3')
 
@@ -6,7 +6,6 @@ database = SqliteDatabase('../db.sqlite3')
 class BaseModel(Model):
     class Meta:
         database = database
-        order_by = 'id'
 
 
 class User(BaseModel):
@@ -14,9 +13,11 @@ class User(BaseModel):
     full_name = CharField(null=True)
     chat_id = CharField()
     tracking = BooleanField(default=False)
+    period = IntegerField(default=1)  # в минутах
 
     class Meta:
         db_table = 'users'
+        order_by = 'username'
 
 
 class Site(BaseModel):
@@ -26,3 +27,4 @@ class Site(BaseModel):
 
     class Meta:
         db_table = 'sites'
+        order_by = 'id'
