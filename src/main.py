@@ -39,7 +39,7 @@ async def main():
                            status.router, period.router, menu.router, tracking.router)
         await set_commands(bot)
         await bot.delete_webhook(drop_pending_updates=True)
-        await dp.start_polling(bot)
+        await dp.start_polling(bot, skip_updates=True)
         logging.info("Бот запущен.")
     finally:
         logging.critical("Бот остановлен.")

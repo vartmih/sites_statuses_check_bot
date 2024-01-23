@@ -17,6 +17,7 @@ async def get_sites(callback: types.CallbackQuery):
         )
     else:
         await callback.message.answer(
-            "Список сайтов ({0} из 10):\n{1}".format(len(sites), '\n'.join(sites)),
-            reply_markup=main_keyboard()
+            "Список сайтов (<b>{0}</b> из 10):\n{1}".format(len(sites), '\n'.join(sites)),
+            reply_markup=main_keyboard(),
+            parse_mode='HTML'
         )

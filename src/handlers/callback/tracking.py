@@ -19,11 +19,14 @@ async def run(callback: types.CallbackQuery):
             reply_markup=main_keyboard()
         )
     elif sites:
-        user.update(tracking=True).execute()
+        user.tracking = True
+        user.save()
+
         await callback.message.answer(
-            text="Бот начал отслеживать работоспособность сайтов. "
+            text="Бот <b>начал отслеживать</b> работоспособность сайтов. "
                  "\nЧто-нибудь еще?",
-            reply_markup=main_keyboard().as_markup()
+            reply_markup=main_keyboard(),
+            parse_mode='HTML'
         )
         await utils.run_sites_tracking(callback.message)
     else:
@@ -37,10 +40,12 @@ async def run(callback: types.CallbackQuery):
 @router.callback_query(F.data == "stop")
 async def stop(callback: types.CallbackQuery):
     user = User.get(User.username == callback.from_user.username)
-    user.update(tracking=False).execute()
+    user.tracking = False
+    user.save()
 
     await callback.message.answer(
-        text="Бот закончил отслеживать работоспособность сайтов. "
+        text="Бот <b>закончил отслеживать</b> работоспособность сайтов. "
              "\nЧто-нибудь еще?",
-        reply_markup=main_keyboard().as_markup()
+        reply_markup=main_keyboard(),
+        parse_mode='HTML'
     )

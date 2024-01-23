@@ -13,10 +13,15 @@ async def add_site(callback: types.CallbackQuery, state: FSMContext):
     sites = Site.select().where(Site.user == callback.from_user.username)
     if len(sites) >= 10:
         await callback.message.answer(
-            text="Вы отслеживаете максимально допустимое количество сайтов (10). "
+            text="Вы отслеживаете максимально допустимое количество сайтов (<b>10</b>). "
                  "Удалите что-нибудь, чтобы добавить новые.",
-            reply_markup=main_keyboard()
+            reply_markup=main_keyboard(),
+            parse_mode='HTML'
         )
     else:
-        await callback.message.answer('Введите ссылку на сайт:')
+        await callback.message.answer(
+            text="Пример формата ссылки: <code>https://example.com</code>.\n"
+            "Введите ссылку на сайт:",
+            parse_mode='HTML'
+        )
         await state.set_state(FSM.site)

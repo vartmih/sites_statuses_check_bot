@@ -19,7 +19,8 @@ async def start(message: types.Message):
         )
 
     if user.chat_id != message.chat.id:
-        user.update(chat_id=message.chat.id).execute()
+        user.chat_id = message.chat.id
+        user.save()
 
     await message.answer(
         text="Вас приветствует бот-помощник, который будет уведомлять "

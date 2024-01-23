@@ -10,7 +10,7 @@ from src.main import bot
 from src.models import User, Site
 
 
-def is_valid_url(url):
+def is_valid_url(url: str) -> bool:
     try:
         result = urlparse(url)
         return all([result.scheme, result.netloc])
@@ -34,6 +34,7 @@ async def run_sites_tracking(message: types.Message | None = None, username: str
                 response = requests.get(url=site, timeout=5)
                 if response.status_code != 200:
                     raise RequestException
+                logging.info(f"Сайт {site} доступен.")
             except RequestException:
                 logging.info(f"Сайт {site} недоступен.")
                 if message:

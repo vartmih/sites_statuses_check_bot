@@ -12,8 +12,9 @@ async def status(callback: types.CallbackQuery):
     sites = Site.select().where(Site.user == callback.from_user.username)
 
     await callback.message.answer(
-        text=f"Бот {'не ' if not user.tracking else ''}отслеживает работоспособность сайтов. "
-             f"\nУказано сайтов: {len(sites)} из 10."
-             f"\nПериодичность опросов: раз в {user.period} минут{'у' if user.period == 1 else ''}.",
-        reply_markup=main_keyboard()
+        text=f"Бот <b>{'не ' if not user.tracking else ''}отслеживает</b> работоспособность сайтов. "
+             f"\nУказано сайтов: <b>{len(sites)}</b> из 10."
+             f"\nПериодичность опросов: раз в <b>{user.period}</b> минут{'у' if user.period == 1 else ''}.",
+        reply_markup=main_keyboard(),
+        parse_mode='HTML'
     )

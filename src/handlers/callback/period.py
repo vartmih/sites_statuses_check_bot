@@ -17,7 +17,9 @@ async def period(callback: types.CallbackQuery):
 @router.callback_query(F.data.startswith("period_"))
 async def set_period(callback: types.CallbackQuery):
     user = User.get(User.username == callback.from_user.username)
-    user.update(period=callback.data.split('_')[1]).execute()
+    user.period = int(callback.data.split('_')[1])
+    user.save()
+
     await callback.message.answer(
         text="Период отслеживания установлен. "
              "\nЧто-нибудь еще?",
