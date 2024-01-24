@@ -1,6 +1,7 @@
 from peewee import SqliteDatabase, Model, PrimaryKeyField, BooleanField, CharField, ForeignKeyField, IntegerField
+from src.settings import settings
 
-database = SqliteDatabase('../db.sqlite3')
+database = SqliteDatabase(settings.DB_PATH)
 
 
 class BaseModel(Model):
