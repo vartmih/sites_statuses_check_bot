@@ -14,6 +14,7 @@ from src.settings import settings
 
 
 async def on_startup(bot: Bot) -> None:
+    await utils.restart_sites_tracking_for_all_active_users(bot=bot)
     await set_commands(bot)
     await bot.set_webhook(
         url=f"{settings.BASE_WEBHOOK_URL}{settings.WEBHOOK_PATH}",
@@ -43,9 +44,8 @@ def main():
     webhook_requests_handler.register(app, path=settings.WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
 
-    web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
-    utils.restart_sites_tracking_for_all_active_users(bot=bot)
     logging.info("Бот запущен.")
+    web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
 
 
 if __name__ == "__main__":

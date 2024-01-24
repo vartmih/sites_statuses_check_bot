@@ -33,7 +33,6 @@ async def run_sites_tracking(message: types.Message | None = None, username: str
                 response = requests.get(url=site, timeout=5)
                 if response.status_code != 200:
                     raise RequestException
-                logging.info(f"Сайт {site} доступен.")
             except RequestException:
                 logging.info(f"Сайт {site} недоступен.")
                 if message:
@@ -46,7 +45,7 @@ async def run_sites_tracking(message: types.Message | None = None, username: str
         await asyncio.sleep(user.period * 60)
 
 
-def restart_sites_tracking_for_all_active_users(bot: Bot):
+async def restart_sites_tracking_for_all_active_users(bot: Bot):
     users_query = User.select()
     users = [user.username for user in users_query if user.tracking]
 
