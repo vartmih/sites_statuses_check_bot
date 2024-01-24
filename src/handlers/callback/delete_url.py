@@ -32,6 +32,5 @@ async def delete_url(callback: types.CallbackQuery):
 
     await callback.message.answer(
         text=f"Сайт удален из отслеживаемых. Всего сайтов <b>{len(sites)}</b> из 10.",
-        reply_markup=main_keyboard(),
-        parse_mode='HTML'
+        reply_markup=main_keyboard()
     )

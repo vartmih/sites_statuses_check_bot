@@ -25,8 +25,7 @@ async def run(callback: types.CallbackQuery):
         await callback.message.answer(
             text="Бот <b>начал отслеживать</b> работоспособность сайтов. "
                  "\nЧто-нибудь еще?",
-            reply_markup=main_keyboard(),
-            parse_mode='HTML'
+            reply_markup=main_keyboard()
         )
         await utils.run_sites_tracking(callback.message)
     else:
@@ -46,6 +45,5 @@ async def stop(callback: types.CallbackQuery):
     await callback.message.answer(
         text="Бот <b>закончил отслеживать</b> работоспособность сайтов. "
              "\nЧто-нибудь еще?",
-        reply_markup=main_keyboard(),
-        parse_mode='HTML'
+        reply_markup=main_keyboard()
     )

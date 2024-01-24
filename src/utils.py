@@ -3,10 +3,9 @@ import logging
 from urllib.parse import urlparse
 
 import requests
-from aiogram import types
+from aiogram import types, Bot
 from requests import RequestException
 
-from src.main import bot
 from src.models import User, Site
 
 
@@ -18,7 +17,7 @@ def is_valid_url(url: str) -> bool:
         return False
 
 
-async def run_sites_tracking(message: types.Message | None = None, username: str | None = None):
+async def run_sites_tracking(message: types.Message | None = None, username: str | None = None, bot: Bot | None = None):
     while True:
         tg_username = username or message.chat.username
         user = User.get(User.username == tg_username)
@@ -45,3 +44,11 @@ async def run_sites_tracking(message: types.Message | None = None, username: str
                 logging.error(error)
 
         await asyncio.sleep(user.period * 60)
+
+
+def restart_sites_tracking_for_all_active_users(bot: Bot):
+    users_query = User.select()
+    users = [user.username for user in users_query if user.tracking]
+
+    for user in users:
+        asyncio.create_task(run_sites_tracking(username=user, bot=bot))
