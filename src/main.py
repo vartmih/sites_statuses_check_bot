@@ -44,7 +44,6 @@ def main():
     webhook_requests_handler.register(app, path=settings.WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
 
-    logging.info("Бот запущен.")
     web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
 
 
@@ -53,7 +52,7 @@ if __name__ == "__main__":
         level=logging.INFO,
         format="%(asctime)s - %(name)-5s - %(levelname)-5s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        filename="../bot.log",
+        filename=settings.LOG_PATH,
         filemode="w",
     )
     main()
