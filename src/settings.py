@@ -11,8 +11,9 @@ class Settings(BaseSettings):
     WEBHOOK_SECRET: SecretStr
     WEBHOOK_PATH: str
     WEB_SERVER_HOST: str
-    WEB_SERVER_PORT: str
+    WEB_SERVER_PORT: int
     BASE_WEBHOOK_URL: str
+    DB_PATH: str
 
     model_config = SettingsConfigDict(env_file=env_file, env_file_encoding="utf-8")
 
