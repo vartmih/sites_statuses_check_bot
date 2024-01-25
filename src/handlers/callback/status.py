@@ -8,8 +8,9 @@ router = Router()
 
 @router.callback_query(F.data == "status")
 async def status(callback: types.CallbackQuery):
-    user = User.get(User.username == callback.from_user.username)
-    sites = Site.select().where(Site.user == callback.from_user.username)
+    user = User.get(User.chat_id == callback.from_user.id)
+
+    sites = Site.select().where(Site.user == user.chat_id)
 
     await callback.message.answer(
         text=f"Бот <b>{'не ' if not user.tracking else ''}отслеживает</b> работоспособность сайтов. "

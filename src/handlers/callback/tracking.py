@@ -2,15 +2,15 @@ from aiogram import F, types, Router
 
 from src import utils
 from src.keyboards import main_keyboard
-from src.models import User, Site
+from src.models import Site, User
 
 router = Router()
 
 
 @router.callback_query(F.data == "run")
 async def run(callback: types.CallbackQuery):
-    user = User.get(User.username == callback.from_user.username)
-    sites = Site.select().where(Site.user == callback.from_user.username)
+    user = User.get(User.chat_id == callback.from_user.id)
+    sites = Site.select().where(Site.user == user.chat_id)
 
     if user.tracking:
         await callback.message.answer(
@@ -38,7 +38,7 @@ async def run(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == "stop")
 async def stop(callback: types.CallbackQuery):
-    user = User.get(User.username == callback.from_user.username)
+    user = User.get(User.chat_id == callback.from_user.id)
     user.tracking = False
     user.save()
 

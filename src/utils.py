@@ -17,20 +17,20 @@ def is_valid_url(url: str) -> bool:
         return False
 
 
-async def run_sites_tracking(message: types.Message | None = None, username: str | None = None, bot: Bot | None = None):
+async def run_sites_tracking(message: types.Message | None = None, user_id: str | None = None, bot: Bot | None = None):
     while True:
-        tg_username = username or message.chat.username
-        user = User.get(User.username == tg_username)
+        chat_id = user_id or message.chat.id
+        user = User.get_or_none(User.chat_id == chat_id)
 
-        if not user.tracking:
+        if user and not user.tracking or not user:
             break
 
-        sites_query = Site.select().where(Site.user == tg_username)
+        sites_query = Site.select().where(Site.user == user.chat_id)
         sites = [site.url for site in sites_query]
 
         for site in sites:
             try:
-                response = requests.get(url=site, timeout=5)
+                response = requests.get(url=site, timeout=10)
                 if response.status_code != 200:
                     raise RequestException
             except RequestException:
@@ -47,7 +47,7 @@ async def run_sites_tracking(message: types.Message | None = None, username: str
 
 async def restart_sites_tracking_for_all_active_users(bot: Bot):
     users_query = User.select()
-    users = [user.username for user in users_query if user.tracking]
+    users = [user.chat_id for user in users_query if user.tracking]
 
     for user in users:
-        asyncio.create_task(run_sites_tracking(username=user, bot=bot))
+        asyncio.create_task(run_sites_tracking(user_id=user, bot=bot))

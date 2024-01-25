@@ -9,18 +9,14 @@ router = Router()
 
 @router.message(Command(commands=["start"]))
 async def start(message: types.Message):
-    user = User.get_or_none(User.username == message.from_user.username)
+    user = User.get_or_none(User.chat_id == message.chat.id)
 
     if not user:
-        user = User.create(
+        User.create(
             full_name=message.from_user.full_name,
             username=message.from_user.username,
             chat_id=message.chat.id
         )
-
-    if user.chat_id != message.chat.id:
-        user.chat_id = message.chat.id
-        user.save()
 
     await message.answer(
         text="Вас приветствует бот-помощник, который будет уведомлять "

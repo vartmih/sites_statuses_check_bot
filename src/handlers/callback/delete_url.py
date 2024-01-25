@@ -1,14 +1,15 @@
 from aiogram import F, types, Router
 
 from src.keyboards import main_keyboard, url_keyboard_factory
-from src.models import Site
+from src.models import Site, User
 
 router = Router()
 
 
 @router.callback_query(F.data == "delete_site")
 async def delete_url_menu(callback: types.CallbackQuery):
-    sites_query = Site.select().where(Site.user == callback.from_user.username)
+    user = User.get(User.chat_id == callback.from_user.id)
+    sites_query = Site.select().where(Site.user == user.chat_id)
     sites = [site.url for site in sites_query]
     if not sites:
         await callback.message.answer(
@@ -25,10 +26,11 @@ async def delete_url_menu(callback: types.CallbackQuery):
 
 @router.callback_query(F.data.startswith("delete_site"))
 async def delete_url(callback: types.CallbackQuery):
+    user = User.get(User.chat_id == callback.from_user.id)
     site = callback.data.split('_')[-1]
 
-    Site.delete().where(Site.user == callback.from_user.username and Site.url == site).execute()
-    sites = Site.select().where(Site.user == callback.from_user.username)
+    Site.delete().where(Site.user == user.chat_id and Site.url == site).execute()
+    sites = Site.select().where(Site.user == user.chat_id)
 
     await callback.message.answer(
         text=f"Сайт удален из отслеживаемых. Всего сайтов <b>{len(sites)}</b> из 10.",

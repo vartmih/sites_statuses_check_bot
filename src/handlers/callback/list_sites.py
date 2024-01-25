@@ -1,14 +1,15 @@
 from aiogram import F, types, Router
 
 from src.keyboards import main_keyboard
-from src.models import Site
+from src.models import Site, User
 
 router = Router()
 
 
 @router.callback_query(F.data == "get_sites")
 async def get_sites(callback: types.CallbackQuery):
-    sites_query = Site.select().where(Site.user == callback.from_user.username)
+    user = User.get(User.chat_id == callback.from_user.id)
+    sites_query = Site.select().where(Site.user == user.chat_id)
     sites = [site.url for site in sites_query]
     if not sites:
         await callback.message.answer(
